@@ -1,0 +1,40 @@
+// public/search.worker.ts
+// (Este arquivo deve ser colocado na pasta `public` do seu projeto)
+
+// Simulação de funções que estariam no worker
+// Na prática, você importaria as funções de similaridade aqui.
+
+self.onmessage = (event) => {
+  const { allFlashcards, settings } = event.data;
+
+  // Lógica de busca por similaridade O(n^2) - executada em segundo plano
+  const similarCards = [];
+  for (let i = 0; i < allFlashcards.length; i++) {
+    for (let j = i + 1; j < allFlashcards.length; j++) {
+      const rem1 = allFlashcards[i];
+      const rem2 = allFlashcards[j];
+
+      const frontSimilarity = calculateSimilarity(rem1.text, rem2.text);
+      let backSimilarity = 1.0;
+
+      if (!settings.checkOnlyFront) {
+        backSimilarity = calculateSimilarity(rem1.backText, rem2.backText);
+      }
+
+      const combinedSimilarity = (frontSimilarity + backSimilarity) / 2;
+
+      if (combinedSimilarity >= settings.similarityThreshold) {
+        similarCards.push({ rem1, rem2, similarity: combinedSimilarity });
+      }
+    }
+  }
+
+  // Envia os resultados de volta para a thread principal
+  self.postMessage({ similarCards });
+};
+
+// Função de similaridade precisa ser definida aqui também
+function calculateSimilarity(text1: string, text2: string): number {
+    // ... implementação da função de similaridade (ex: Jaro-Winkler) ...
+    return 0; // Placeholder
+}
